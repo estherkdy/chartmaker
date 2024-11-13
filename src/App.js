@@ -2,7 +2,7 @@
 * Project 1
 * App component JavaScript source code
 *
-* Author: Denis Gracanin
+* Author: Esther Kim
 * Version: 1.0
 */
 
@@ -17,43 +17,87 @@ import './load.js';
 
 
 const App = (props) => {
-  
+  // name of current file
   const [file, setFile] = useState('');
+  // data from most recently loaded file
   const [dataFile, setDataFile] = useState({});
-  const [data, setData] = useState([]);
-  const [title, setTitle] = useState("");
-  const [labels, setLabels] = useState(["", ""]);
+  // current state of form data (title, data, labels)
+  const [formData, setFormData] = useState({});
   const [hasMounted, setHasMounted] = useState(false);
 
+  const {
+    data,
+    title,
+    labels
+  } = formData; // deconstruct form data
+
+  // construct full form data from individual setters
+  const setData = newData => {
+    setFormData({
+      ...formData,
+      data: newData
+    });
+  };
+  const setTitle = newTitle => {
+    setFormData({
+      ...formData,
+      title: newTitle
+    });
+  };
+  const setLabels = newLabels => {
+    setFormData({
+      ...formData,
+      labels: newLabels
+    });
+  };
+
+  // whenever a new data file is loaded, update the form data state to match it
   useEffect(() => {
-      // This block runs on mount
       if (!hasMounted) {
-          console.log('Component did mount');
+          // This block runs on mount
+          // load pr1.json for initial state
           const initialDataFile = JSON.parse(localStorage.getItem('pr1.json'));
           setFile('pr1.json');
           setDataFile(initialDataFile);
-          setData(initialDataFile.data);
-          setTitle(initialDataFile.title);
-          setLabels(Object.keys(initialDataFile.data[0]));
+          setFormDataFromDatafile(initialDataFile)
           setHasMounted(true); // Set the mounted flag
       } else {
           // This block runs on updates
-          setData(dataFile.data);
-          setTitle(dataFile.title);
-          setLabels(dataFile.data.length > 0 ? Object.keys(dataFile.data[0]) : ["", ""]);
-          console.log('Component did update:', file, data, title, labels);
+          setFormDataFromDatafile(dataFile)
       }
+  }, [dataFile]); // Runs when data file changes (i.e. after load/new are selected)
 
-      // Optional cleanup function (if needed)
-      return () => {
-          // Cleanup logic can go here if necessary
-          console.log('Cleaning up');
-      };
-  }, [dataFile]); // Runs on mount and when count changes
-
-  const handleSave = () => {
-    localStorage.setItem(file, JSON.stringify({title, data}));
+  // formats the data from the given file to the form data format
+  const setFormDataFromDatafile = newDataFile => {
+    const fileData = newDataFile.data;
+    const fileLabels = newDataFile.data.length > 0 ? Object.keys(newDataFile.data[0]) : ["", ""];
+    setFormData({
+      data: dataWithoutLabels(fileData, fileLabels),
+      title: newDataFile.title,
+      labels: fileLabels,
+    });
   };
+
+  // form data format uses x and y as data keys, so user can freely edit labels without breaking the data
+  const dataWithoutLabels = (currData, currLabels) => currData.slice().map(datum => ({
+      x: datum[currLabels[0]],
+      y: datum[currLabels[1]],
+    }));
+  // change back from form data format to file data format
+  // if labels are empty, use x and y as default labels
+  // if y label is the same as x, use y as default
+  // empty/duplicate keys would break the object and/or saved json
+  const dataWithLabels = (currData, newLabels) => currData.slice().map(datum => ({
+    [newLabels[0].length > 0 ? newLabels[0] : "x"]: datum.x,
+    [(newLabels[1].length > 0 && newLabels[1] !== newLabels[0]) ? newLabels[1] : "y"]: datum.y,
+  }));
+
+  // save form data in file format
+  const handleSave = () => {
+    const labeledData = dataWithLabels(data, labels);
+    localStorage.setItem(file, JSON.stringify({title, data: labeledData}));
+  };
+  // set new file name and load empty file
   const handleNew = (fileName) => {
     setFile(fileName);
     setDataFile({
@@ -61,14 +105,17 @@ const App = (props) => {
       data: []
     });
   };
+  // load file with given file name
   const handleLoad = (fileName) => {
     const fileData = JSON.parse(localStorage.getItem(fileName)); 
     setFile(fileName);
     setDataFile(fileData);
   };
+  // set new file name and save form data in file format with that name
   const handleSaveAs = (fileName) => {
     setFile(fileName);
-    localStorage.setItem(fileName, JSON.stringify({ title, data }));
+    const labeledData = dataWithLabels(data, labels);
+    localStorage.setItem(fileName, JSON.stringify({ title, data: labeledData }));
   };
   
   return (
@@ -82,33 +129,35 @@ const App = (props) => {
       <div className='filename'>
         {file}
       </div>
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }} >
-        <Item> 
-         <Editor
-         title={title}
-         setTitle={setTitle}
-         data={data}
-         setData={setData}
-         labels={labels}
-         setLabels={setLabels}
-         >
-
-         </Editor>
-        </Item> 
-
-        <Item>
-          <BarChart
-            title={title}
-            labels={labels}
-            data={data}
-            min={0}
-            dataset={data}
-            sx={{ bgcolor: 'white', width: '100%', height: '100%' }}
+      { formData.data &&
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }} >
+          <Item> 
+          <Editor
+          title={title}
+          setTitle={setTitle}
+          data={data}
+          setData={setData}
+          labels={labels}
+          setLabels={setLabels}
           >
-          </BarChart>
-        </Item>
-       
-      </Box>
+
+          </Editor>
+          </Item> 
+
+          <Item>
+            <BarChart
+              title={title}
+              labels={labels}
+              data={data}
+              min={0}
+              dataset={data}
+              sx={{ bgcolor: 'white', width: '100%', height: '100%' }}
+            >
+            </BarChart>
+          </Item>
+        
+        </Box>
+      }
     </Container>
   );
 }
