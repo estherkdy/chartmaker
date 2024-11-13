@@ -1,9 +1,5 @@
 /*
-* CS 3744 Fall 2022
-* Project 1
-* Data loader JavaScript source code
-*
-* Author: Denis Gracanin
+* Author: Esther Kim
 * Version: 1.0
 */
 "use strict";
