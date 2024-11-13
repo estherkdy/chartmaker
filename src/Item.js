@@ -1,36 +1,17 @@
-/*
-* Project 1 template
-* Item component JavaScript source code
-*
-* Author: Denis Gracanin
-* Version: 1.0
-*/
-import { BoxProps } from "@mui/material/Box";
-import { Box } from "@mui/system";
-import React from "react";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
 
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
 
-const Item = (props: BoxProps) => {
-    const { sx, ...other } = props;
-    return (
-        <Box
-            sx={{
-                bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#101010' :
-                    '#fff'),
-                color: (theme) => (theme.palette.mode === 'dark' ? 'grey.300' :
-                    'grey.800'),
-                border: '1px solid',
-                borderColor: (theme) =>
-                    theme.palette.mode === 'dark' ? 'grey.800' : 'grey.300',
-                p: 1,
-                m: 1,
-                borderRadius: 2,
-                fontSize: '0.875rem',
-                fontWeight: '700',
-                ...sx,
-            }}
-            {...other}
-        />
-    );
-}
-export default Item;
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
