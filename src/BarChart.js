@@ -1,21 +1,18 @@
 /*
- * Project 1
- * BarChart component JavaScript source code
- * 
+ * Author: Esther Kim
  * Version: 1.0
  */
 
 import './BarChart.css';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import * as d3 from 'd3';
 import { Box } from "@mui/system";
 
 const BarChart = (props) => {
-    let myReference = React.createRef();
+    const myReference = useRef();
     const [tooltip, setTooltip] = useState({ display: false, data: {}, color: '', position: { left: 0, top: 0 } });
     let dataset = props.data;
 
-    // let keys = Object.keys(dataset[0]);
     let settings = {
         viewBox: {
             x: 0,
@@ -60,6 +57,7 @@ const BarChart = (props) => {
         }
     };
     let svg = null;
+    // clear svg
     const init = () => {
         let container = d3.select(myReference.current);
         container
@@ -72,12 +70,13 @@ const BarChart = (props) => {
             
     }
 
+    // draw the chart
     const paint = () => {
         svg
             .selectAll("*")
             .remove();
 
-        //title
+        // title
         svg
             .append("g")
             .attr("id", "title")
@@ -86,7 +85,7 @@ const BarChart = (props) => {
             .attr("y", settings.title.y + settings.title.height - settings.title.baseline)
             .text(props.title);
 
-        //x label text
+        // x label text
         svg
             .append("g")
             .attr("id", "xLabel")
@@ -95,7 +94,7 @@ const BarChart = (props) => {
             .attr("y", settings.xLabels.y + settings.xLabels.height - settings.xLabels.baseline + 5)
             .text(props.labels[0]);
 
-        //y label text
+        // y label text
         svg
             .append("g")
             .attr("id", "yLabel")
@@ -108,33 +107,38 @@ const BarChart = (props) => {
 
 
 
-        //bar chart if there is at least one dataset
+        // only draw if there is data
         if (dataset.length > 0)
             paintData();
     }
     const paintData = () => {
-        //set steps (defaults to 0.5 in do-while loop)
-        let step = 0.5;
+        // y axis line increment, initialize at 1
+        let step = 1.0;
 
-
-        //get the max data to set the range / number of lines / step
-        const correctLabels = dataset.length > 0 ? Object.keys(dataset[0]) : ['', ''];
-        let yArray = dataset.map(item => isNaN(parseFloat(item[correctLabels[1]])) ? 0 : parseFloat(item[correctLabels[1]]))
-        console.log(yArray);
+        //get the max value to use for our range and step calculation
+        let yArray = dataset.map(item => isNaN(parseFloat(item.y)) ? 0 : parseFloat(item.y));
         let max = Math.max(...yArray);
 
         let lineCount;
         let dataRange;
 
-
+        // calculate the number of lines with current step value
+        // cut the step in half until there are more than 20 lines
+        // then double it until there are more than 20 lines
         do {
-            // increment 0.5 until the number of lines is less than 20
+            max = step - (max % step) + max;
+            dataRange = max - settings.data.min;
+            lineCount = dataRange / step;
+
+        } while (lineCount < 20 && (step /= 2));
+        do {
             max = step - (max % step) + max;
             dataRange = max - settings.data.min;
             lineCount = dataRange / step;
 
         } while (lineCount > 20 && (step *= 2));
 
+        // draw the lines
         svg
             .append("g")
             .attr("id", "lines")
@@ -151,7 +155,7 @@ const BarChart = (props) => {
                 return settings.xLabels.y - index * settings.bars.height / lineCount;
             });
 
-        //if y value is not a number, set data to 0
+        // draw the bars
         svg
             .append("g")
             .attr("id", "bars")
@@ -161,48 +165,54 @@ const BarChart = (props) => {
             .append("rect")
             .attr("class", "bar")
             .attr("fill", "dodgerblue")
-            .on("click", function () {
-                // d3.select(this).classed('clicked', !d3.select(this).classed('clicked'));
+            .on("click", function(event, d) {
                 const currentColor = d3.select(this).attr("fill");
                 const newColor = currentColor === "dodgerblue" ? "red" : "dodgerblue"; // Toggle color
                 d3.select(this).attr("fill", newColor); // Change the bar color
+                // update tooltip immediately instead of waiting for mouse move
+                updateTooltip(event, d, newColor);
             })
             .attr("x", (item, index) => {
+                // calculate x position from data index
                 return settings.bars.x + (1 - settings.bars.ratio + index) * settings.bars.width / (dataset.length + 1 - settings.bars.ratio);
             })
             .attr("y", (item, index) => {
+                // calculate y position from data item (0 for NaN)
                 return settings.xLabels.y - ((isNaN(Object.values(item)[1]) ? 0 : Object.values(item)[1]) - settings.data.min) * settings.bars.height / dataRange;
             })
+            // calc width based on dataset size
             .attr("width", settings.bars.ratio * settings.bars.width / (dataset.length + 1 - settings.bars.ratio))
             .attr("height", (item, index) => {
+                // calculate height from data item (0 for NaN)
                 return ((isNaN(Object.values(item)[1]) ? 0 : Object.values(item)[1]) - settings.data.min) * settings.bars.height / dataRange;
             })
+            // enable tooltip on hover
             .on("mousemove", function(event, d) {
-                const [x, y] = d3.pointer(event);
-                const rect = myReference.current ? myReference.current.getBoundingClientRect() : null;
-                // const rect = d3.select(myReference.current).node().getBoundingClientRect();
-                const tooltipX = (rect ? rect.left : 700) + x + 10; // Adjust left position
-                const tooltipY = (rect ? rect.top : 500) + y - 30; // Adjust top position
-                const tooltipText = (
-                    <div className='tooltip-text'>
-                        <div>Label: {d[props.labels[0]]}</div>
-                        <div>Value: {d[props.labels[1]]}</div>
-                    </div>
-                );
                 const color = d3.select(this).attr("fill"); // Get the color of the current bar
-                setTooltip({
-                    display: true,
-                    data: { value: tooltipText,
-                     },
-                    position: { left: tooltipX, top: tooltipY },
-                    color: color
-                });
+                updateTooltip(event, d, color);
             })
             .on("mouseout", () => {
                 setTooltip({ display: false, data: {}, color: '', position: {} });
             });
 
+        // define tooltip specs
+        const updateTooltip = (mouseEvent, barData, tooltipColor) => {
+            const tooltipText = (
+                <div className='tooltip-text'>
+                    <div>Label: {barData.x}</div>
+                    <div>Value: {barData.y}</div>
+                </div>
+            );
+            setTooltip({
+                display: true,
+                data: { value: tooltipText,
+                 },
+                position: { left: mouseEvent.clientX, top: mouseEvent.clientY - 50 },
+                color: tooltipColor
+            });
+        };
 
+        // x labels with similar calculations to bar X positions
         let xLabels = svg
             .append('g')
             .attr('id', 'xLabels');
@@ -232,6 +242,7 @@ const BarChart = (props) => {
                 return settings.xLabels.x + (1 - settings.bars.ratio + index + settings.bars.ratio / 2) * settings.bars.width / (dataset.length + 1 - settings.bars.ratio);
             });
 
+        // y labels at increments based on line count
         svg
             .append("g")
             .attr("id", "yLabels")
@@ -253,6 +264,7 @@ const BarChart = (props) => {
         paint();
     }, [props.data, props.title, props.labels]);
 
+    // base element for the svg to draw onto, plus tooltip drawing based on tooltip specs in state
     return (
         <Box ref={myReference} width="100%" height="100%">
             {tooltip.display && tooltip.position && (
