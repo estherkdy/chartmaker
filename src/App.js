@@ -1,7 +1,4 @@
 /*
-* Project 1
-* App component JavaScript source code
-*
 * Author: Esther Kim
 * Version: 1.0
 */
