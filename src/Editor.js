@@ -1,17 +1,13 @@
 /*
-* Project 1 template
-* Editor component JavaScript source code
-*
-* Author: Denis Gracanin
+* Author: Esther Kim
 * Version: 1.0
 */
 import './Editor.css';
-import React, { useEffect, useState } from 'react';
-import { Button, Box, Select, MenuItem, TextField } from '@mui/material/';
+import { useState } from 'react';
+import { Button, TextField } from '@mui/material/';
 
 
-// define inputs for one line, define the data that gets rendered ina loop
-
+ // styling objects
 const editor_style = {
   item_style: {
     width: '100%',
@@ -32,38 +28,23 @@ const editor_style = {
   },
 }
 
+// Editor component that receives props for managing title, labels, and data
 const Editor = (props) => {
   const { title, setTitle, setLabels, labels, data, setData } = props;
   const [x, setX] = useState("");
   const [y, setY] = useState("");
 
-  let keys = [];
-  if (data.length > 0) {
-    keys = Object.keys(data[0]);
-  }
-  //   updatedData: [
-  //       { year: '1950', population: 2.525 },
-  //       { year: '1960', population: 3.018 },
-  //       { year: '1970', population: 3.682 },
-  //       { year: '1980', population: 14.440 },
-  //       { year: '1990', population: 5.310 },
-  //       { year: '2000', population: 6.127 },
-  //       { year: '2010', population: 6.930 },
-  //       { year: '2020', population: 6.930 },
-  //       { year: '2030', population: 20 }
-  //   ]
-  // };
-
-  // onChange={e => dataChangeHandler(i, keys[0], e.target.value)}
+  // changing data fields dynamically by index and key. the handler copies current data, updates the specific entry, then updates data state 
   const dataChangeHandler = (index, key, newData) => {
-    const updatedData = data.slice();
+    const updatedData = data.slice(); 
     updatedData[index][key] = newData;
     setData(updatedData);
   };
 
+  // handler for adding new x and y values to the data list
   const addHandler = () => {
-    const newData = { [keys[0]]: x, [keys[1]]: y }; // x added to year and y added to population for ex
-    setData([...data, newData]); // adds newdata to the existing data
+    const newData = { x, y }; // new data objects
+    setData([...data, newData]); // adding the new data object to existing array
 
     // resets the x and y fields
     setX("");
@@ -71,10 +52,11 @@ const Editor = (props) => {
   };
 
 
+  // deletes a data entry by its index in the data array
   const deleteHandler = index => {
-  const updatedData = [...data];
-  updatedData.splice(index, 1); // removing the object at that index from the array
-  setData(updatedData);
+    const updatedData = [...data];
+    updatedData.splice(index, 1); // removing the object at that specified index
+    setData(updatedData);
   };
 
   return (
@@ -102,8 +84,18 @@ const Editor = (props) => {
           sx={
             {
               ...editor_style.button_style, border: 2,
+              backgroundColor: 'rgb(25, 117, 210)',
               borderColor: 'rgb(25, 117, 210)',
-              color: 'rgb(25, 117, 210)',
+              color: 'white',
+              fontWeight: 'bold',
+              mt: 1,
+              '&:disabled': {
+                borderColor: 'lightgray',
+                backgroundColor: 'lightgray', // Gray background indicating a disabled button
+                color: 'white',  
+                cursor: 'not-allowed', 
+                opacity: 0.6,  
+              }
             }
           }
         >{'ADD'}</Button>
@@ -142,19 +134,19 @@ const Editor = (props) => {
         Data:
       </div>
 
-      {/*  going through the data array */}
+      {/* mapping over data array to render each entry */}
       <div className='data-group'>
         {data.map((datum, i) =>
           <div key={'datum ' + i}>
             <TextField
-              value={datum[keys[0]]}
-              onChange={e => dataChangeHandler(i, keys[0], e.target.value)}
+              value={datum.x}
+              onChange={e => dataChangeHandler(i, 'x', e.target.value)}
               size={'small'}
               sx={{ ...editor_style.textfield_style }}
             />
             <TextField
-              value={datum[keys[1]]}
-              onChange={e => dataChangeHandler(i, keys[1], e.target.value)}
+              value={datum.y}
+              onChange={e => dataChangeHandler(i, 'y', e.target.value)}
               size={'small'}
               sx={{ ...editor_style.textfield_style }}
             />
@@ -163,8 +155,10 @@ const Editor = (props) => {
               sx={
                 {
                   ...editor_style.button_style, border: 2,
+                  backgroundColor: 'rgb(25, 117, 210)',
                   borderColor: 'rgb(25, 117, 210)',
-                  color: 'rgb(25, 117, 210)',
+                  color: 'white',
+                  fontWeight: 'bold',                  mt: 1
                 }
               }
             >{'DEL'}</Button>
