@@ -1,8 +1,5 @@
 /*
-* Project 1 template
-* Editor component JavaScript source code
-*
-* Author: Denis Gracanin
+* Author: Esther Kim
 * Version: 1.0
 */
 import './MenuBar.css';
@@ -28,11 +25,11 @@ import {
 
 const MenuBar = (props) => {
   const [anchorElFile, setAnchorElFile] = useState(null);
-  //when new filename is necessary
+  // toggle state for showing dialog for new file name (for new and save as options)
   const [newOpen, setNewOpen] = useState(false);
-  //to distinuish if it's "save as" or "new"
+  // determines whether we're calling save or new after submitting a new file name
   const [save, setSave] = useState(false);
-  //when load button is clicked 
+  // toggle state for load file dialog 
   const [loadOpen, setLoadOpen] = useState(false);
 
   const openFile = Boolean(anchorElFile);
@@ -65,7 +62,7 @@ const MenuBar = (props) => {
             open={openFile}
             onClose={handleCloseFile}
           >
-            {/* when menu items are clicked,their functions are called*/}
+            {/* when menu items are clicked, their functions are called*/}
             <MenuItem id={'new'} onClick={handleNewOpen}>New</MenuItem>
             <MenuItem onClick={handleLoadOpen}>Load</MenuItem>
             <MenuItem onClick={handleSave}>Save</MenuItem>
@@ -88,91 +85,89 @@ const MenuBar = (props) => {
     </Box>
   );
 
+  // Handle menu save click
   function handleSave() {
+    // tell parent to save
     props.handleSave();
+    // close menu
     handleCloseFile();
   }
 
-  /*
-   * when a new file is needed
-   * it opens the NewFile component 
-   */
+  // Open the new file name dialog
   function handleNewOpen(e) {
-      //this will help set the onClick handle component
-      if (e.target.id === 'new')
-          setSave(false)
-      else
-          setSave(true)
-
+      // set the flag for save as, so the dialog will:
+      // -save after a file name is picked if true
+      // -clear the file if false
+      setSave(e.target.id === 'saveAs')
+      // toggle the new file name dialog on
       setNewOpen(true);
+      // close the menu
+      handleCloseFile();
   }
 
-  /*
-  * when a new file is needed for empty data
-  * it closes the NewFile component 
-  */
-  function handleNewClose(file, cancel) {
+  // handle new file name submission
+  function handleNewClose(file, submitted) {
+      // close the dialog
       setNewOpen(false);
-      if (cancel) {
+      if (submitted) {
+          // tell the parent to generate the new file
           props.handleNew(file);
       }
+  }
+
+  // handle load file menu click
+  function handleLoadOpen() {
+      // open load file dialog
+      setLoadOpen(true);
+      // close the menu
       handleCloseFile();
   }
 
-  /*
-   * opens the LoadFile component
-   */
-  function handleLoadOpen() {
-      setLoadOpen(true);
-  }
-
-  /*
-   * when the file is needed to be loaded get the file name and loads new data
-   */
+  // handle load file dialog submit
   function handleLoadClose(file) {
+      // close the dialog
       setLoadOpen(false);
       if (file !== '') {
+          // load the file if one was picked
           props.handleLoad(file);
       }
-      handleCloseFile();
   }
 
-  /*
-   * when a new file needs to be saved for existing data
-   * it closes the NewFile component 
-   */
-  function handleSaveAsClose(file, cancel) {
+  // handle save as filename submission
+  function handleSaveAsClose(file, submitted) {
+      // close the dialog
       setNewOpen(false);
-      if (cancel) {
+      if (submitted) {
+          // tell the parent to save with the new file name
           props.handleSaveAs(file);
       }
-      handleCloseFile();
   }
 };
 
 
-//gets the file name for new file
+// Dialog for a new file name
 function NewFile(props) {
   let [file, setFile] = useState('');
 
-  //close component if pressing cancel
+  // cancel button handler
   function handleCancel() {
       props.handleCloseFile(file, false);
   };
 
-  //isn't able to create new data if no file name is included
+  // submit handler
   function handleCreate() {
+      // only submit if there was a name entered
       if (file !== '')
           props.handleCloseFile(file, true);
+      // clear dialog input
       setFile('');
   }
 
-  //sets the file name
+  // update dialog input
   function fileName(e) {
       setFile(e.target.value)
   }
 
-  // const handle
   return (
       <Dialog
           open={props.open}
@@ -186,7 +181,7 @@ function NewFile(props) {
                   onChange={fileName}
                   margin="dense"
                   label="File Name"
-                  helperText="Enter file name (*.json)"
+                  helperText="Enter file name"
                   variant="standard"
               />
           </DialogContent>
@@ -199,13 +194,13 @@ function NewFile(props) {
 }
 
 function LoadFile(props) {
-  //if no file is selected 
+  // handle cancel
   const handleCloseFile = () => {
       props.handleCloseFile('');
   }
 
-  // if the file is selected
-  const handleListItemClick = (e) => {
+  // handle file name click
+  const handleFileClick = (e) => {
       props.handleCloseFile(e);
   }
 
@@ -220,9 +215,9 @@ function LoadFile(props) {
           <List sx={{ pt: 0 }}>
               {
                   Object.keys(localStorage).map((key, i) => (
-                      <ListItem disableGutters key={i}>
+                      <ListItem disableGutters key={"file " + i}>
                           <ListItemButton
-                              onClick={() => handleListItemClick(key)}
+                              onClick={() => handleFileClick(key)}
                           >
                               <ListItemText primary={key} />
                           </ListItemButton>
