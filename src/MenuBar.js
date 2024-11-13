@@ -2,7 +2,7 @@
 * Author: Esther Kim
 * Version: 1.0
 */
-import './MenuBar.css';
+
 import React, { useState } from "react";
 import {
   AppBar,
