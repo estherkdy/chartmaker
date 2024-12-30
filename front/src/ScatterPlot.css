@@ -1,0 +1,82 @@
+/*
+* ScatterPlot  CSS source code
+*
+* Author: Esther Kim
+* Version: 1.0
+*/
+/* The svg element */
+
+svg {
+  border: none;
+  font-family: Arial;
+  text-anchor: middle;
+  width: 100%;
+  height: 100%;
+}
+
+/* The title text */
+#title {
+  font-size: 3pt;
+  fill: black;
+}
+
+/* Labels and values text */
+#xLabels,
+#yLabels {
+  font-size: 1pt;
+  fill: grey;
+}
+
+/* The name of the first attribute */
+#xLabels #name {
+  font-size: 2pt;
+}
+
+/* The name of the second attribute */
+#yLabels #name {
+  font-size: -5rem;
+  writing-mode: tb;
+  text-orientation: upright;
+}
+
+/* Lines */
+#lines {
+  stroke: silver;
+  stroke-width: 0.1pt;
+}
+
+/* Bars */
+#bars {
+  fill: dodgerblue;
+}
+
+ 
+.clicked {
+  fill: red;
+}
+
+/* Tooltip text */
+#tooltip {
+  font-size: 2pt;
+  fill: black;
+  text-anchor: start;
+  visibility: hidden;
+}
+
+/* Tooltip background */
+#tooltip rect {
+  
+  rx: 2px;
+  ry: 2px;
+}
+
+/* Tooltip text lines */
+#tooltip tspan {
+  padding: 10px;
+  fill: black;
+}
+
+#xLabel, #yLabel {
+  font-size: 2px;
+  font-weight: normal;
+}

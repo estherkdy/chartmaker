@@ -1,0 +1,18 @@
+/*
+* App CSS
+*
+* Author: Esther Kim
+* Version: 1.0
+*/
+.App {
+  height: 100vh;
+}
+.filename {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  font-weight: bold;
+  font-size: 12px;
+  height: 15px;
+}
+ 

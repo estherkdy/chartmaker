@@ -1,0 +1,13 @@
+/*
+* Editor CSS source code
+*
+* Author: Esther Kim
+* Version: 1.0
+*/
+.Editor {
+    height: 100%;
+}
+.data-group {
+    height: 340px;
+    overflow-y: scroll;
+}
